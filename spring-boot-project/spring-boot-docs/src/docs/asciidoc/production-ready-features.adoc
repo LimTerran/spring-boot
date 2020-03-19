@@ -406,8 +406,6 @@ The following example sets the time-to-live of the `beans` endpoint's cache to 1
 
 NOTE: The prefix `management.endpoint.<name>` is used to uniquely identify the endpoint that is being configured.
 
-NOTE: When making an authenticated HTTP request, the `Principal` is considered as input to the endpoint and, therefore, the response will not be cached.
-
 
 
 [[production-ready-endpoints-hypermedia]]
@@ -663,6 +661,9 @@ The following `HealthIndicators` are auto-configured by Spring Boot when appropr
 | {spring-boot-actuator-module-code}/couchbase/CouchbaseHealthIndicator.java[`CouchbaseHealthIndicator`]
 | Checks that a Couchbase cluster is up.
 
+| {spring-boot-actuator-module-code}/jdbc/DataSourceHealthIndicator.java[`DataSourceHealthIndicator`]
+| Checks that a connection to `DataSource` can be obtained.
+
 | {spring-boot-actuator-module-code}/system/DiskSpaceHealthIndicator.java[`DiskSpaceHealthIndicator`]
 | Checks for low disk space.
 
@@ -786,7 +787,8 @@ For reactive applications, such as those using Spring WebFlux, `ReactiveHealthCo
 Similar to a traditional `HealthContributor`, health information is collected from the content of a {spring-boot-actuator-module-code}/health/ReactiveHealthContributorRegistry.java[`ReactiveHealthContributorRegistry`] (by default all {spring-boot-actuator-module-code}/health/HealthContributor.java[`HealthContributor`] and {spring-boot-actuator-module-code}/health/ReactiveHealthContributor.java[`ReactiveHealthContributor`] instances defined in your `ApplicationContext`).
 Regular `HealthContributors` that do not check against a reactive API are executed on the elastic scheduler.
 
-TIP: In a reactive application, The `ReactiveHealthContributorRegistry` can be used to register and unregister health indicators at runtime.
+TIP: In a reactive application, The `ReactiveHealthContributorRegistry` should be used to register and unregister health indicators at runtime.
+If you need to register a regular `HealthContributor`, you should wrap it using `ReactiveHealthContributor#adapt`.
 
 To provide custom health information from a reactive API, you can register Spring beans that implement the {spring-boot-actuator-module-code}/health/ReactiveHealthIndicator.java[`ReactiveHealthIndicator`] interface.
 The following code shows a sample `ReactiveHealthIndicator` implementation:
@@ -1723,7 +1725,8 @@ By default, Spring MVC-related metrics are tagged with the following information
 | Request's URI template prior to variable substitution, if possible (for example, `/api/person/\{id}`)
 |===
 
-To customize the tags, provide a `@Bean` that implements `WebMvcTagsProvider`.
+To add to the default tags, provide one or more `@Bean`s that implement `WebMvcTagsContributor`.
+To replace the default tags, provide a `@Bean` that implements `WebMvcTagsProvider`.
 
 
 
@@ -1756,7 +1759,8 @@ By default, WebFlux-related metrics are tagged with the following information:
 | Request's URI template prior to variable substitution, if possible (for example, `/api/person/\{id}`)
 |===
 
-To customize the tags, provide a `@Bean` that implements `WebFluxTagsProvider`.
+To add to the default tags, provide one or more `@Bean`s that implement `WebFluxTagsContributor`.
+To replace the default tags, provide a `@Bean` that implements `WebFluxTagsProvider`.
 
 
 

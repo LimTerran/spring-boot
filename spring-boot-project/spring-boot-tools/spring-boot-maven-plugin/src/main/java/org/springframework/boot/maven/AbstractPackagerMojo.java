@@ -16,11 +16,16 @@
 
 package org.springframework.boot.maven;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -31,6 +36,8 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.artifact.filter.collection.ArtifactsFilter;
 import org.apache.maven.shared.artifact.filter.collection.ScopeFilter;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 import org.springframework.boot.loader.tools.Layout;
 import org.springframework.boot.loader.tools.LayoutFactory;
@@ -74,8 +81,8 @@ public abstract class AbstractPackagerMojo extends AbstractDependencyFilterMojo 
 
 	/**
 	 * The type of archive (which corresponds to how the dependencies are laid out inside
-	 * it). Possible values are JAR, LAYERED_JAR, WAR, ZIP, DIR, NONE. Defaults to a guess
-	 * based on the archive type.
+	 * it). Possible values are JAR, WAR, ZIP, DIR, NONE. Defaults to a guess based on the
+	 * archive type.
 	 * @since 1.0.0
 	 */
 	@Parameter(property = "spring-boot.repackage.layout")
@@ -105,6 +112,13 @@ public abstract class AbstractPackagerMojo extends AbstractDependencyFilterMojo 
 	public boolean includeSystemScope;
 
 	/**
+	 * Layer configuration with the option to exclude layer tools jar.
+	 * @since 2.3.0
+	 */
+	@Parameter
+	private Layers layers;
+
+	/**
 	 * Return a {@link Packager} configured for this MOJO.
 	 * @param <P> the packager type
 	 * @param supplier a packager supplier
@@ -119,7 +133,29 @@ public abstract class AbstractPackagerMojo extends AbstractDependencyFilterMojo 
 			getLog().info("Layout: " + this.layout);
 			packager.setLayout(this.layout.layout());
 		}
+		if (this.layers != null && this.layers.isEnabled()) {
+			if (this.layers.getConfiguration() != null) {
+				try {
+					Document document = getDocumentIfAvailable(this.layers.getConfiguration());
+					CustomLayersProvider customLayersProvider = new CustomLayersProvider();
+					packager.setLayers(customLayersProvider.getLayers(document));
+				}
+				catch (Exception ex) {
+					throw new IllegalStateException("Failed to process custom layers configuration "
+							+ this.layers.getConfiguration().getAbsolutePath(), ex);
+				}
+			}
+			packager.setLayout(new LayeredJar());
+			packager.setIncludeRelevantJarModeJars(this.layers.isIncludeLayerTools());
+		}
 		return packager;
+	}
+
+	private Document getDocumentIfAvailable(File configurationFile) throws Exception {
+		InputSource inputSource = new InputSource(new FileInputStream(configurationFile));
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		return builder.parse(inputSource);
 	}
 
 	/**
@@ -157,11 +193,6 @@ public abstract class AbstractPackagerMojo extends AbstractDependencyFilterMojo 
 		 * Jar Layout.
 		 */
 		JAR(new Jar()),
-
-		/**
-		 * Layered Jar Layout.
-		 */
-		LAYERED_JAR(new LayeredJar()),
 
 		/**
 		 * War Layout.

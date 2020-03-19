@@ -43,7 +43,6 @@ import java.util.function.Consumer;
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
-import org.apache.maven.shared.invoker.InvocationOutputHandler;
 import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
@@ -56,6 +55,7 @@ import static org.assertj.core.api.Assertions.contentOf;
  * Helper class for executing a Maven build.
  *
  * @author Andy Wilkinson
+ * @author Scott Frederick
  *
  */
 class MavenBuild {
@@ -117,6 +117,14 @@ class MavenBuild {
 	}
 
 	void execute(Consumer<File> callback) {
+		execute(callback, 0);
+	}
+
+	void executeAndFail(Consumer<File> callback) {
+		execute(callback, 1);
+	}
+
+	private void execute(Consumer<File> callback, int expectedExitCode) {
 		Invoker invoker = new DefaultInvoker();
 		invoker.setMavenHome(this.home);
 		InvocationRequest request = new DefaultInvocationRequest();
@@ -158,6 +166,7 @@ class MavenBuild {
 			Files.write(destination.resolve("settings.xml"), settingsXml.getBytes(StandardCharsets.UTF_8),
 					StandardOpenOption.CREATE_NEW);
 			request.setBaseDirectory(this.temp);
+			request.setJavaHome(new File(System.getProperty("java.home")));
 			request.setProperties(this.properties);
 			request.setGoals(this.goals.isEmpty() ? Collections.singletonList("package") : this.goals);
 			request.setUserSettingsFile(new File(this.temp, "settings.xml"));
@@ -170,18 +179,13 @@ class MavenBuild {
 			}
 			File buildLogFile = new File(target, "build.log");
 			try (PrintWriter buildLog = new PrintWriter(new FileWriter(buildLogFile))) {
-				request.setOutputHandler(new InvocationOutputHandler() {
-
-					@Override
-					public void consumeLine(String line) {
-						buildLog.println(line);
-						buildLog.flush();
-					}
-
+				request.setOutputHandler((line) -> {
+					buildLog.println(line);
+					buildLog.flush();
 				});
 				try {
 					InvocationResult result = invoker.execute(request);
-					assertThat(result.getExitCode()).as(contentOf(buildLogFile)).isEqualTo(0);
+					assertThat(result.getExitCode()).as(contentOf(buildLogFile)).isEqualTo(expectedExitCode);
 				}
 				catch (MavenInvocationException ex) {
 					throw new RuntimeException(ex);

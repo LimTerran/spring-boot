@@ -24,13 +24,18 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ArtifactCollection;
+import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
@@ -40,11 +45,15 @@ import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
 
 import org.springframework.boot.loader.tools.Layer;
 import org.springframework.boot.loader.tools.Layers;
 import org.springframework.boot.loader.tools.Library;
+import org.springframework.boot.loader.tools.LibraryCoordinates;
+import org.springframework.boot.loader.tools.layer.CustomLayers;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -52,6 +61,7 @@ import org.springframework.util.FileCopyUtils;
  *
  * @author Andy Wilkinson
  * @author Madhura Bhave
+ * @author Scott Frederick
  * @since 2.0.0
  */
 public class BootJar extends Jar implements BootArchive {
@@ -67,9 +77,13 @@ public class BootJar extends Jar implements BootArchive {
 
 	private Layers layers;
 
+	private LayerConfiguration layerConfiguration;
+
 	private static final String BOOT_INF_LAYERS = "BOOT-INF/layers";
 
 	private final List<String> dependencies = new ArrayList<>();
+
+	private final Map<String, String> coordinatesByFileName = new HashMap<>();
 
 	/**
 	 * Creates a new {@code BootJar} task.
@@ -164,20 +178,57 @@ public class BootJar extends Jar implements BootArchive {
 		action.execute(enableLaunchScriptIfNecessary());
 	}
 
+	@Optional
+	@Nested
+	public LayerConfiguration getLayerConfiguration() {
+		return this.layerConfiguration;
+	}
+
 	/**
 	 * Configures the archive to have layers.
 	 */
-	public void layered() {
-		this.layers = Layers.IMPLICIT;
-		this.bootInf.into("lib", (spec) -> spec.from((Callable<File>) () -> {
-			String jarName = "spring-boot-jarmode-layertools.jar";
-			InputStream stream = getClass().getClassLoader().getResourceAsStream("META-INF/jarmode/" + jarName);
-			File taskTmp = new File(getProject().getBuildDir(), "tmp/" + getName());
-			taskTmp.mkdirs();
-			File layerToolsJar = new File(taskTmp, jarName);
-			FileCopyUtils.copy(stream, new FileOutputStream(layerToolsJar));
-			return layerToolsJar;
-		}));
+	public void layers() {
+		enableLayers();
+	}
+
+	public void layers(Action<LayerConfiguration> action) {
+		action.execute(enableLayers());
+	}
+
+	private LayerConfiguration enableLayers() {
+		if (this.layerConfiguration == null) {
+			this.layerConfiguration = new LayerConfiguration();
+		}
+
+		return this.layerConfiguration;
+	}
+
+	private void applyLayers() {
+		if (this.layerConfiguration == null) {
+			return;
+		}
+
+		if (this.layerConfiguration.getLayersOrder() == null || this.layerConfiguration.getLayersOrder().isEmpty()) {
+			this.layers = Layers.IMPLICIT;
+		}
+		else {
+			List<Layer> customLayers = this.layerConfiguration.getLayersOrder().stream().map(Layer::new)
+					.collect(Collectors.toList());
+			this.layers = new CustomLayers(customLayers, this.layerConfiguration.getClasses(),
+					this.layerConfiguration.getLibraries());
+		}
+
+		if (this.layerConfiguration.isIncludeLayerTools()) {
+			this.bootInf.into("lib", (spec) -> spec.from((Callable<File>) () -> {
+				String jarName = "spring-boot-jarmode-layertools.jar";
+				InputStream stream = getClass().getClassLoader().getResourceAsStream("META-INF/jarmode/" + jarName);
+				File taskTmp = new File(getProject().getBuildDir(), "tmp/" + getName());
+				taskTmp.mkdirs();
+				File layerToolsJar = new File(taskTmp, jarName);
+				FileCopyUtils.copy(stream, new FileOutputStream(layerToolsJar));
+				return layerToolsJar;
+			}));
+		}
 		this.bootInf.eachFile((details) -> {
 			Layer layer = layerForFileDetails(details);
 			if (layer != null) {
@@ -191,7 +242,10 @@ public class BootJar extends Jar implements BootArchive {
 	private Layer layerForFileDetails(FileCopyDetails details) {
 		String path = details.getPath();
 		if (path.startsWith("BOOT-INF/lib/")) {
-			return this.layers.getLayer(new Library(details.getFile(), null));
+			String coordinates = this.coordinatesByFileName.get(details.getName());
+			LibraryCoordinates libraryCoordinates = (coordinates != null) ? new LibraryCoordinates(coordinates)
+					: new LibraryCoordinates("?:?:?");
+			return this.layers.getLayer(new Library(null, details.getFile(), null, false, libraryCoordinates));
 		}
 		if (path.startsWith("BOOT-INF/classes/")) {
 			return this.layers.getLayer(details.getSourcePath());
@@ -218,9 +272,16 @@ public class BootJar extends Jar implements BootArchive {
 		}
 	}
 
+	private void resolveCoordinatesForFiles(ResolvableDependencies resolvableDependencies) {
+		ArtifactCollection resolvedArtifactResults = resolvableDependencies.getArtifacts();
+		Set<ResolvedArtifactResult> artifacts = resolvedArtifactResults.getArtifacts();
+		artifacts.forEach((artifact) -> this.coordinatesByFileName.put(artifact.getFile().getName(),
+				artifact.getId().getComponentIdentifier().getDisplayName()));
+	}
+
 	@Input
 	boolean isLayered() {
-		return this.layers != null;
+		return this.layerConfiguration != null;
 	}
 
 	@Override
@@ -253,6 +314,13 @@ public class BootJar extends Jar implements BootArchive {
 	@Override
 	public void setExcludeDevtools(boolean excludeDevtools) {
 		this.support.setExcludeDevtools(excludeDevtools);
+	}
+
+	public void resolvedDependencies(ResolvableDependencies resolvableDependencies) {
+		if (resolvableDependencies != null) {
+			resolveCoordinatesForFiles(resolvableDependencies);
+		}
+		applyLayers();
 	}
 
 	/**
