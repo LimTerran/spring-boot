@@ -683,6 +683,13 @@ bom {
 			]
 		}
 	}
+	library("Jakarta XML SOAP", "1.4.2") {
+		group("jakarta.xml.soap") {
+			modules = [
+					"jakarta.xml.soap-api"
+			]
+		}
+	}
 	library("Jakarta XML WS", "2.3.3") {
 		group("jakarta.xml.ws") {
 			modules = [
@@ -1376,7 +1383,7 @@ bom {
 			]
 		}
 	}
-	library("Reactor Bom", "Dysprosium-SR5") {
+	library("Reactor Bom", "Dysprosium-SR6") {
 		group("io.projectreactor") {
 			imports = [
 				"reactor-bom"
@@ -1616,7 +1623,7 @@ bom {
 			]
 		}
 	}
-	library("Spring Framework", "5.2.4.RELEASE") {
+	library("Spring Framework", "5.2.5.RELEASE") {
 		group("org.springframework") {
 			imports = [
 				"spring-framework-bom"
