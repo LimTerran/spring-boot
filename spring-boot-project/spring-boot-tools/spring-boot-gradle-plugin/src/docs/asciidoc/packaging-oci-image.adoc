@@ -1,5 +1,5 @@
 [[build-image]]
-== Packaging OCI images
+== Packaging OCI Images
 The plugin can create an https://github.com/opencontainers/image-spec[OCI image] from executable jars using https://buildpacks.io[Cloud Native Buildpacks].
 Images can be built using the `bootBuildImage` task.
 The task is automatically created when the `java` plugin is applied and is an instance of {boot-build-image-javadoc}[`BootBuildImage`].
@@ -7,7 +7,7 @@ The task is automatically created when the `java` plugin is applied and is an in
 
 
 [[build-image-docker-daemon]]
-=== Docker daemon
+=== Docker Daemon
 The `bootBuildImage` task requires access to a Docker daemon.
 By default, it will communicate with a Docker daemon over a local connection.
 This works with https://docs.docker.com/install/[Docker Engine] on all supported platforms without configuration.
@@ -96,7 +96,13 @@ include::../gradle/packaging/boot-build-image-builder.gradle.kts[tags=builder]
 
 This configuration will use a builder image with the name `mine/java-cnb-builder` and the tag `latest`.
 
-If the builder exposes configuration options, those can be set using the `environment` property, as shown in the following example:
+
+
+[[build-image-example-builder-configuration]]
+==== Builder Configuration
+If the builder exposes configuration options, those can be set using the `environment` property.
+
+The following example assumes that the default builder defines a `BP_JAVA_VERSION` property (typically used to customize the JDK version the image should use):
 
 [source,groovy,indent=0,subs="verbatim,attributes",role="primary"]
 .Groovy
@@ -110,7 +116,20 @@ include::../gradle/packaging/boot-build-image-env.gradle[tags=env]
 include::../gradle/packaging/boot-build-image-env.gradle.kts[tags=env]
 ----
 
-The example above assumes that the builder defines a `BP_JAVA_VERSION` property (typically used to customize the JDK version the image should use).
+If there is a network proxy between the Docker daemon the builder runs in and network locations that buildpacks download artifacts from, you will need to configure the builder to use the proxy.
+When using the default builder, this can be accomplished by setting the `HTTPS_PROXY` and/or `HTTP_PROXY` environment variables as show in the following example:
+
+[source,groovy,indent=0,subs="verbatim,attributes",role="primary"]
+.Groovy
+----
+include::../gradle/packaging/boot-build-image-env-proxy.gradle[tags=env]
+----
+
+[source,kotlin,indent=0,subs="verbatim,attributes",role="secondary"]
+.Kotlin
+----
+include::../gradle/packaging/boot-build-image-env-proxy.gradle.kts[tags=env]
+----
 
 
 
