@@ -163,9 +163,9 @@ TIP: The https://github.com/pivotal-cf/java-cfenv/[Java CFEnv] project is a bett
 [[cloud-deployment-kubernetes]]
 === Kubernetes
 Spring Boot auto-detects Kubernetes deployment environments by checking the environment for `"*_SERVICE_HOST"` and `"*_SERVICE_PORT"` variables.
-You can override this detection with the configprop:management.health.probes.enabled[] configuration property.
+You can override this detection with the configprop:spring.main.cloud-platform[] configuration property.
 
-Spring Boot helps you to <<spring-boot-features.adoc#boot-features-application-availability-state,manage the state of your application>> and export it with <<production-ready-features.adoc#production-ready-kubernetes-probes, HTTP Kubernetes Probes using Actuator>>.
+Spring Boot helps you to <<spring-boot-features.adoc#boot-features-application-availability,manage the state of your application>> and export it with <<production-ready-features.adoc#production-ready-kubernetes-probes, HTTP Kubernetes Probes using Actuator>>.
 
 
 
@@ -648,7 +648,7 @@ It often makes sense to customize elements of the start script as it is written 
 For example, init.d scripts can provide a "`description`".
 Since you know the description up front (and it need not change), you may as well provide it when the jar is generated.
 
-To customize written elements, use the `embeddedLaunchScriptProperties` option of the Spring Boot Maven plugin or the {spring-boot-gradle-plugin-docs}/#packaging-executable-configuring-launch-script[`properties` property of the Spring Boot Gradle plugin's `launchScript`].
+To customize written elements, use the `embeddedLaunchScriptProperties` option of the Spring Boot Maven plugin or the {spring-boot-gradle-plugin-docs}#packaging-executable-configuring-launch-script[`properties` property of the Spring Boot Gradle plugin's `launchScript`].
 
 The following property substitutions are supported with the default script:
 

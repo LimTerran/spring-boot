@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
  * payload.
  *
  * @author Brian Clozel
+ * @author Scott Frederick
  * @since 2.0.0
  */
 public class DefaultErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
@@ -113,7 +114,8 @@ public class DefaultErrorWebExceptionHandler extends AbstractErrorWebExceptionHa
 	 */
 	protected Mono<ServerResponse> renderErrorView(ServerRequest request) {
 		boolean includeStackTrace = isIncludeStackTrace(request, MediaType.TEXT_HTML);
-		Map<String, Object> error = getErrorAttributes(request, includeStackTrace);
+		boolean includeDetails = isIncludeDetails(request, MediaType.TEXT_HTML);
+		Map<String, Object> error = getErrorAttributes(request, includeStackTrace, includeDetails);
 		int errorStatus = getHttpStatus(error);
 		ServerResponse.BodyBuilder responseBody = ServerResponse.status(errorStatus).contentType(TEXT_HTML_UTF8);
 		return Flux.just(getData(errorStatus).toArray(new String[] {}))
@@ -141,7 +143,8 @@ public class DefaultErrorWebExceptionHandler extends AbstractErrorWebExceptionHa
 	 */
 	protected Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
 		boolean includeStackTrace = isIncludeStackTrace(request, MediaType.ALL);
-		Map<String, Object> error = getErrorAttributes(request, includeStackTrace);
+		boolean includeDetails = isIncludeDetails(request, MediaType.ALL);
+		Map<String, Object> error = getErrorAttributes(request, includeStackTrace, includeDetails);
 		return ServerResponse.status(getHttpStatus(error)).contentType(MediaType.APPLICATION_JSON)
 				.body(BodyInserters.fromValue(error));
 	}
@@ -153,14 +156,31 @@ public class DefaultErrorWebExceptionHandler extends AbstractErrorWebExceptionHa
 	 * @return if the stacktrace attribute should be included
 	 */
 	protected boolean isIncludeStackTrace(ServerRequest request, MediaType produces) {
-		ErrorProperties.IncludeStacktrace include = this.errorProperties.getIncludeStacktrace();
-		if (include == ErrorProperties.IncludeStacktrace.ALWAYS) {
+		switch (this.errorProperties.getIncludeStacktrace()) {
+		case ALWAYS:
 			return true;
-		}
-		if (include == ErrorProperties.IncludeStacktrace.ON_TRACE_PARAM) {
+		case ON_TRACE_PARAM:
 			return isTraceEnabled(request);
+		default:
+			return false;
 		}
-		return false;
+	}
+
+	/**
+	 * Determine if the message and errors attributes should be included.
+	 * @param request the source request
+	 * @param produces the media type produced (or {@code MediaType.ALL})
+	 * @return if the message and errors attributes should be included
+	 */
+	protected boolean isIncludeDetails(ServerRequest request, MediaType produces) {
+		switch (this.errorProperties.getIncludeDetails()) {
+		case ALWAYS:
+			return true;
+		case ON_DETAILS_PARAM:
+			return isDetailsEnabled(request);
+		default:
+			return false;
+		}
 	}
 
 	/**

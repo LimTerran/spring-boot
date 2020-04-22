@@ -30,6 +30,14 @@
       }
     },
     {
+      "name": "server.connection-timeout",
+      "type" : "java.time.Duration",
+      "deprecation": {
+        "reason": "Each server behaves differently. Use server specific properties instead.",
+        "level": "error"
+      }
+    },
+    {
       "name": "server.jetty.accesslog.date-format",
       "deprecation": {
         "replacement": "server.jetty.accesslog.custom-format",
@@ -107,6 +115,10 @@
       "defaultValue": "2KB"
     },
     {
+      "name": "server.error.include-details",
+      "defaultValue": "never"
+    },
+    {
       "name": "server.error.include-stacktrace",
       "defaultValue": "never"
     },
@@ -114,6 +126,14 @@
       "name": "server.http2.enabled",
       "description": "Whether to enable HTTP/2 support, if the current environment supports it.",
       "defaultValue": false
+    },
+    {
+      "name": "server.jetty.max-http-post-size",
+      "type": "org.springframework.util.unit.DataSize",
+      "deprecation": {
+        "replacement": "server.jetty.max-http-form-post-size",
+        "level": "error"
+      }
     },
     {
       "name": "server.port",
@@ -242,6 +262,23 @@
       "description": "Type of the trust store."
     },
     {
+      "name": "server.tomcat.max-http-post-size",
+      "type": "org.springframework.util.unit.DataSize",
+      "deprecation": {
+        "replacement": "server.tomcat.max-http-form-post-size",
+        "level": "error"
+      }
+    },
+    {
+      "name": "server.use-forward-headers",
+      "type": "java.lang.Boolean",
+      "deprecation": {
+        "reason": "Replaced to support additional strategies.",
+        "replacement": "server.forward-headers-strategy",
+        "level": "error"
+      }
+    },
+    {
       "name": "spring.aop.auto",
       "type": "java.lang.Boolean",
       "description": "Add @EnableAspectJAutoProxy.",
@@ -313,6 +350,14 @@
       "defaultValue": "none"
     },
     {
+      "name": "spring.data.cassandra.pool.max-queue-size",
+      "type": "java.lang.Integer",
+      "deprecation": {
+        "replacement": "spring.data.cassandra.throttler.max-queue-size",
+        "level": "error"
+      }
+    },
+    {
       "name": "spring.data.cassandra.repositories.type",
       "type": "org.springframework.boot.autoconfigure.data.RepositoryType",
       "description": "Type of Cassandra repositories to enable.",
@@ -327,6 +372,10 @@
         "replacement": "spring.data.cassandra.repositories.type",
         "level": "error"
       }
+    },
+    {
+      "name": "spring.data.cassandra.throttler.type",
+      "defaultValue": "none"
     },
     {
       "name": "spring.data.couchbase.repositories.type",

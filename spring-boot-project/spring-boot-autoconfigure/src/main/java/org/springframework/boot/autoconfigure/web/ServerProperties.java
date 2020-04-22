@@ -100,13 +100,6 @@ public class ServerProperties {
 	 */
 	private DataSize maxHttpHeaderSize = DataSize.ofKilobytes(8);
 
-	/**
-	 * Time that connectors wait for another HTTP request before closing the connection.
-	 * When not set, the connector's container-specific default is used. Use a value of -1
-	 * to indicate no (that is, an infinite) timeout.
-	 */
-	private Duration connectionTimeout;
-
 	@NestedConfigurationProperty
 	private Ssl ssl;
 
@@ -145,17 +138,6 @@ public class ServerProperties {
 		this.address = address;
 	}
 
-	@DeprecatedConfigurationProperty(reason = "replaced to support additional strategies",
-			replacement = "server.forward-headers-strategy")
-	public Boolean isUseForwardHeaders() {
-		return ForwardHeadersStrategy.NATIVE.equals(this.forwardHeadersStrategy);
-	}
-
-	public void setUseForwardHeaders(Boolean useForwardHeaders) {
-		this.forwardHeadersStrategy = Boolean.TRUE.equals(useForwardHeaders) ? ForwardHeadersStrategy.NATIVE
-				: ForwardHeadersStrategy.NONE;
-	}
-
 	public String getServerHeader() {
 		return this.serverHeader;
 	}
@@ -170,18 +152,6 @@ public class ServerProperties {
 
 	public void setMaxHttpHeaderSize(DataSize maxHttpHeaderSize) {
 		this.maxHttpHeaderSize = maxHttpHeaderSize;
-	}
-
-	@Deprecated
-	@DeprecatedConfigurationProperty(
-			reason = "Each server behaves differently. Use server specific properties instead.")
-	public Duration getConnectionTimeout() {
-		return this.connectionTimeout;
-	}
-
-	@Deprecated
-	public void setConnectionTimeout(Duration connectionTimeout) {
-		this.connectionTimeout = connectionTimeout;
 	}
 
 	public ErrorProperties getError() {
@@ -443,17 +413,6 @@ public class ServerProperties {
 			this.getThreads().setMinSpare(minSpareThreads);
 		}
 
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "server.tomcat.max-http-form-post-size")
-		public DataSize getMaxHttpPostSize() {
-			return this.maxHttpFormPostSize;
-		}
-
-		@Deprecated
-		public void setMaxHttpPostSize(DataSize maxHttpPostSize) {
-			this.maxHttpFormPostSize = maxHttpPostSize;
-		}
-
 		public DataSize getMaxHttpFormPostSize() {
 			return this.maxHttpFormPostSize;
 		}
@@ -487,55 +446,67 @@ public class ServerProperties {
 		}
 
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.remoteip.internal-proxies")
+		@Deprecated
 		public String getInternalProxies() {
 			return this.remoteip.getInternalProxies();
 		}
 
+		@Deprecated
 		public void setInternalProxies(String internalProxies) {
 			this.remoteip.setInternalProxies(internalProxies);
 		}
 
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.remoteip.protocol-header")
+		@Deprecated
 		public String getProtocolHeader() {
 			return this.remoteip.getProtocolHeader();
 		}
 
+		@Deprecated
 		public void setProtocolHeader(String protocolHeader) {
 			this.remoteip.setProtocolHeader(protocolHeader);
 		}
 
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.remoteip.protocol-header-https-value")
+		@Deprecated
 		public String getProtocolHeaderHttpsValue() {
 			return this.remoteip.getProtocolHeaderHttpsValue();
 		}
 
+		@Deprecated
 		public void setProtocolHeaderHttpsValue(String protocolHeaderHttpsValue) {
 			this.remoteip.setProtocolHeaderHttpsValue(protocolHeaderHttpsValue);
 		}
 
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.remoteip.host-header")
+		@Deprecated
 		public String getHostHeader() {
 			return this.remoteip.getHostHeader();
 		}
 
+		@Deprecated
 		public void setHostHeader(String hostHeader) {
 			this.remoteip.setHostHeader(hostHeader);
 		}
 
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.remote.port-header")
+		@Deprecated
 		public String getPortHeader() {
 			return this.remoteip.getPortHeader();
 		}
 
+		@Deprecated
 		public void setPortHeader(String portHeader) {
 			this.remoteip.setPortHeader(portHeader);
 		}
 
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.remoteip.remote-ip-header")
+		@Deprecated
 		public String getRemoteIpHeader() {
 			return this.remoteip.getRemoteIpHeader();
 		}
 
+		@Deprecated
 		public void setRemoteIpHeader(String remoteIpHeader) {
 			this.remoteip.setRemoteIpHeader(remoteIpHeader);
 		}
@@ -1084,17 +1055,6 @@ public class ServerProperties {
 			return this.threads;
 		}
 
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "server.jetty.max-http-form-post-size")
-		public DataSize getMaxHttpPostSize() {
-			return this.maxHttpFormPostSize;
-		}
-
-		@Deprecated
-		public void setMaxHttpPostSize(DataSize maxHttpPostSize) {
-			this.maxHttpFormPostSize = maxHttpPostSize;
-		}
-
 		public DataSize getMaxHttpFormPostSize() {
 			return this.maxHttpFormPostSize;
 		}
@@ -1109,6 +1069,7 @@ public class ServerProperties {
 			return this.getThreads().getAcceptors();
 		}
 
+		@Deprecated
 		public void setAcceptors(Integer acceptors) {
 			this.getThreads().setAcceptors(acceptors);
 		}
@@ -1119,6 +1080,7 @@ public class ServerProperties {
 			return this.getThreads().getSelectors();
 		}
 
+		@Deprecated
 		public void setSelectors(Integer selectors) {
 			this.getThreads().setSelectors(selectors);
 		}

@@ -472,6 +472,16 @@ class ConfigFileApplicationListenerTests {
 	}
 
 	@Test
+	void profilesAddedToEnvironmentAndViaPropertyWithBracketNotation(CapturedOutput output) {
+		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(this.environment, "spring.profiles.active[0]=dev",
+				"spring.profiles.active[1]=other");
+		this.initializer.postProcessEnvironment(this.environment, this.application);
+		assertThat(this.environment.getActiveProfiles()).contains("dev", "other");
+		assertThat(this.environment.getProperty("my.property")).isEqualTo("fromotherpropertiesfile");
+		validateProfilePreference(output, null, "dev", "other");
+	}
+
+	@Test
 	void postProcessorsAreOrderedCorrectly() {
 		TestConfigFileApplicationListener testListener = new TestConfigFileApplicationListener();
 		testListener.onApplicationEvent(
@@ -913,6 +923,16 @@ class ConfigFileApplicationListenerTests {
 		this.initializer.postProcessEnvironment(this.environment, this.application);
 		assertThat(this.environment.getProperty("foo")).isEqualTo("spam");
 		assertThat(this.environment.getProperty("value")).isEqualTo("1234");
+	}
+
+	@Test
+	void additionalLocationWhenLocationConfiguredShouldTakesPrecedenceOverConfiguredLocation() {
+		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(this.environment,
+				"spring.config.location=classpath:some.properties",
+				"spring.config.additional-location=classpath:override.properties");
+		this.initializer.postProcessEnvironment(this.environment, this.application);
+		assertThat(this.environment.getProperty("foo")).isEqualTo("bar");
+		assertThat(this.environment.getProperty("value")).isNull();
 	}
 
 	@Test

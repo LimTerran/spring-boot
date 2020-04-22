@@ -573,7 +573,7 @@ bom {
 			]
 		}
 	}
-	library("Jackson Bom", "2.11.0.rc1") {
+	library("Jackson Bom", "2.10.3") {
 		group("com.fasterxml.jackson") {
 			imports = [
 				"jackson-bom"
@@ -967,7 +967,7 @@ bom {
 			]
 		}
 	}
-	library("Kafka", "2.4.1") {
+	library("Kafka", "2.5.0") {
 		group("org.apache.kafka") {
 			modules = [
 				"connect-api",
@@ -1383,7 +1383,7 @@ bom {
 			]
 		}
 	}
-	library("Reactor Bom", "Dysprosium-SR6") {
+	library("Reactor Bom", "Dysprosium-BUILD-SNAPSHOT") {
 		group("io.projectreactor") {
 			imports = [
 				"reactor-bom"
@@ -1596,7 +1596,7 @@ bom {
 			]
 		}
 	}
-	library("Spring AMQP", "2.2.5.RELEASE") {
+	library("Spring AMQP", "2.2.6.BUILD-SNAPSHOT") {
 		group("org.springframework.amqp") {
 			modules = [
 				"spring-amqp",
@@ -1616,14 +1616,14 @@ bom {
 			]
 		}
 	}
-	library("Spring Data Releasetrain", "Neumann-RC1") {
+	library("Spring Data Releasetrain", "Neumann-BUILD-SNAPSHOT") {
 		group("org.springframework.data") {
 			imports = [
 				"spring-data-releasetrain"
 			]
 		}
 	}
-	library("Spring Framework", "5.2.5.RELEASE") {
+	library("Spring Framework", "5.2.6.BUILD-SNAPSHOT") {
 		group("org.springframework") {
 			imports = [
 				"spring-framework-bom"
@@ -1637,14 +1637,14 @@ bom {
 			]
 		}
 	}
-	library("Spring Integration", "5.3.0.M4") {
+	library("Spring Integration", "5.3.0.BUILD-SNAPSHOT") {
 		group("org.springframework.integration") {
 			imports = [
 				"spring-integration-bom"
 			]
 		}
 	}
-	library("Spring Kafka", "2.4.5.RELEASE") {
+	library("Spring Kafka", "2.5.0.BUILD-SNAPSHOT") {
 		group("org.springframework.kafka") {
 			modules = [
 				"spring-kafka",
@@ -1794,6 +1794,13 @@ bom {
 		group("org.codehaus.mojo") {
 			plugins = [
 				"versions-maven-plugin"
+			]
+		}
+	}
+	library("Wavefront SDK", "2.2") {
+		group("com.wavefront") {
+			modules = [
+					"wavefront-sdk-java"
 			]
 		}
 	}
