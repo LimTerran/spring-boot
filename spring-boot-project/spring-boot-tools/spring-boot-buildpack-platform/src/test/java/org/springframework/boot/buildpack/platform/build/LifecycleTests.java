@@ -102,7 +102,7 @@ class LifecycleTests {
 	}
 
 	@Test
-	void executeWhenAleadyRunThrowsException() throws Exception {
+	void executeWhenAlreadyRunThrowsException() throws Exception {
 		given(this.docker.container().create(any())).willAnswer(answerWithGeneratedContainerId());
 		given(this.docker.container().create(any(), any())).willAnswer(answerWithGeneratedContainerId());
 		given(this.docker.container().wait(any())).willReturn(ContainerStatus.of(0, null));
@@ -128,6 +128,11 @@ class LifecycleTests {
 		given(this.docker.container().wait(any())).willReturn(ContainerStatus.of(0, null));
 		BuildRequest request = getTestRequest().withCleanCache(true);
 		createLifecycle(request).execute();
+		assertPhaseWasRun("detector", withExpectedConfig("lifecycle-detector.json"));
+		assertPhaseWasRun("analyzer", withExpectedConfig("lifecycle-analyzer-clean-cache.json"));
+		assertPhaseWasNotRun("restorer");
+		assertPhaseWasRun("builder", withExpectedConfig("lifecycle-builder.json"));
+		assertPhaseWasRun("exporter", withExpectedConfig("lifecycle-exporter.json"));
 		VolumeName name = VolumeName.of("pack-cache-b35197ac41ea.build");
 		verify(this.docker.volume()).delete(name, true);
 	}
@@ -201,6 +206,11 @@ class LifecycleTests {
 		configConsumer.accept(this.configs.get(containerReference.toString()));
 	}
 
+	private void assertPhaseWasNotRun(String name) {
+		ContainerReference containerReference = ContainerReference.of("lifecycle-" + name);
+		assertThat(this.configs.get(containerReference.toString())).isNull();
+	}
+
 	private IOConsumer<ContainerConfig> withExpectedConfig(String name) {
 		return (config) -> {
 			InputStream in = getClass().getResourceAsStream(name);
@@ -211,9 +221,9 @@ class LifecycleTests {
 
 	static class TestLifecycle extends Lifecycle {
 
-		TestLifecycle(BuildLog log, DockerApi docker, BuildRequest request, ImageReference runImageReferece,
+		TestLifecycle(BuildLog log, DockerApi docker, BuildRequest request, ImageReference runImageReference,
 				EphemeralBuilder builder) {
-			super(log, docker, request, runImageReferece, builder);
+			super(log, docker, request, runImageReference, builder);
 		}
 
 		@Override

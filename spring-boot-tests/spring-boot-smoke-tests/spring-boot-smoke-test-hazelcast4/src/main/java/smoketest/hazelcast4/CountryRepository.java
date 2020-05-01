@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2012-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,20 @@
  * limitations under the License.
  */
 
-/**
- * Support for writing TOML content.
- */
-package org.springframework.boot.buildpack.platform.toml;
+package smoketest.hazelcast4;
+
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
+
+@Component
+@CacheConfig(cacheNames = "countries")
+public class CountryRepository {
+
+	@Cacheable
+	public Country findByCode(String code) {
+		System.out.println("---> Loading country with code '" + code + "'");
+		return new Country(code);
+	}
+
+}

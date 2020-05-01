@@ -93,7 +93,7 @@ If a misconfigured bean is initialized lazily, a failure will no longer occur du
 Care must also be taken to ensure that the JVM has sufficient memory to accommodate all of the application's beans and not just those that are initialized during startup.
 For these reasons, lazy initialization is not enabled by default and it is recommended that fine-tuning of the JVM's heap size is done before enabling lazy initialization.
 
-Lazy initialization can be enabled programatically using the `lazyInitialization` method on `SpringApplicationBuilder` or the `setLazyInitialization` method on `SpringApplication`.
+Lazy initialization can be enabled programmatically using the `lazyInitialization` method on `SpringApplicationBuilder` or the `setLazyInitialization` method on `SpringApplication`.
 Alternatively, it can be enabled using the configprop:spring.main.lazy-initialization[] property as shown in the following example:
 
 [source,properties,indent=0,configprops]
@@ -447,7 +447,7 @@ Property values can be injected directly into your beans by using the `@Value` a
 Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values.
 Properties are considered in the following order:
 
-. <<using-spring-boot.adoc#using-boot-devtools-globalsettings,Devtools global settings properties>> in the `$HOME/.config/spring-boot` folder when devtools is active.
+. <<using-spring-boot.adoc#using-boot-devtools-globalsettings,Devtools global settings properties>> in the `$HOME/.config/spring-boot` directory when devtools is active.
 . {spring-framework-api}/test/context/TestPropertySource.html[`@TestPropertySource`] annotations on your tests.
 . `properties` attribute on your tests.
   Available on {spring-boot-test-module-api}/context/SpringBootTest.html[`@SpringBootTest`] and the <<boot-features-testing-spring-boot-applications-testing-autoconfigured-tests,test annotations for testing a particular slice of your application>>.
@@ -499,7 +499,8 @@ For example, if you have some Redis configuration and some MySQL configuration, 
 This might result in two separate `application.properties` files mounted at different locations such as `/config/redis/application.properties` and `/config/mysql/application.properties`.
 In such a case, having a wildcard location of `config/*/`, will result in both files being processed.
 
-NOTE: Locations with wildcards are not processed in a deterministic order and files that match the wildcard cannot be used to override keys in the other.
+NOTE: A wildcard location must contain only one `*` and end with `*/` for search locations that are directories or `*/<filename>` for search locations that are files.
+Locations with wildcards are sorted alphabetically based on the absolute path of the file names.
 
 
 [[boot-features-external-config-application-json]]
@@ -1556,7 +1557,7 @@ The following table summarizes the features that are supported by `@Configuratio
 
 | <<boot-features-external-config-relaxed-binding,Relaxed binding>>
 | Yes
-| No
+| Limited (see note below)
 
 | <<appendix-configuration-metadata.adoc#configuration-metadata,Meta-data support>>
 | Yes
@@ -1568,7 +1569,12 @@ The following table summarizes the features that are supported by `@Configuratio
 |===
 
 If you define a set of configuration keys for your own components, we recommend you group them in a POJO annotated with `@ConfigurationProperties`.
-You should also be aware that, since `@Value` does not support relaxed binding, it is not a good candidate if you need to provide the value by using environment variables.
+Doing so will provide you with structured, type-safe object that you can inject into your own beans.
+
+If you do want to use `@Value`, we recommend that you refer to property names using their canonical form (kebab-case using only lowercase letters).
+This will allow Spring Boot to use the same logic as it does when relaxed binding `@ConfigurationProperties`.
+For example, `@Value("{demo.item-price}")` will pick up `demo.item-price` and `demo.itemPrice` forms from the `application.properties` file, as well as `DEMO_ITEMPRICE` from the system environment.
+If you used `@Value("{demo.itemPrice}")` instead, `demo.item-price` and `DEMO_ITEMPRICE` would not be considered.
 
 Finally, while you can write a `SpEL` expression in `@Value`, such expressions are not processed from <<boot-features-external-config-application-property-files,application property files>>.
 
@@ -2477,11 +2483,11 @@ In the preceding example, if `YourException` is thrown by a controller defined i
 
 [[boot-features-error-handling-custom-error-pages]]
 ===== Custom Error Pages
-If you want to display a custom HTML error page for a given status code, you can add a file to an `/error` folder.
-Error pages can either be static HTML (that is, added under any of the static resource folders) or be built by using templates.
+If you want to display a custom HTML error page for a given status code, you can add a file to an `/error` directory.
+Error pages can either be static HTML (that is, added under any of the static resource directories) or be built by using templates.
 The name of the file should be the exact status code or a series mask.
 
-For example, to map `404` to a static HTML file, your folder structure would be as follows:
+For example, to map `404` to a static HTML file, your directory structure would be as follows:
 
 [source,indent=0,subs="verbatim,quotes,attributes"]
 ----
@@ -2496,7 +2502,7 @@ For example, to map `404` to a static HTML file, your folder structure would be 
 	             +- <other public assets>
 ----
 
-To map all `5xx` errors by using a FreeMarker template, your folder structure would be as follows:
+To map all `5xx` errors by using a FreeMarker template, your directory structure would be as follows:
 
 [source,indent=0,subs="verbatim,quotes,attributes"]
 ----
@@ -2823,11 +2829,11 @@ For a more complete picture, you can also subclass `DefaultErrorWebExceptionHand
 
 [[boot-features-webflux-error-handling-custom-error-pages]]
 ===== Custom Error Pages
-If you want to display a custom HTML error page for a given status code, you can add a file to an `/error` folder.
-Error pages can either be static HTML (that is, added under any of the static resource folders) or built with templates.
+If you want to display a custom HTML error page for a given status code, you can add a file to an `/error` directory.
+Error pages can either be static HTML (that is, added under any of the static resource directories) or built with templates.
 The name of the file should be the exact status code or a series mask.
 
-For example, to map `404` to a static HTML file, your folder structure would be as follows:
+For example, to map `404` to a static HTML file, your directory structure would be as follows:
 
 [source,indent=0,subs="verbatim,quotes,attributes"]
 ----
@@ -2842,7 +2848,7 @@ For example, to map `404` to a static HTML file, your folder structure would be 
 	             +- <other public assets>
 ----
 
-To map all `5xx` errors by using a Mustache template, your folder structure would be as follows:
+To map all `5xx` errors by using a Mustache template, your directory structure would be as follows:
 
 [source,indent=0,subs="verbatim,quotes,attributes"]
 ----
@@ -4058,7 +4064,7 @@ https://spring.io/projects/spring-data-r2dbc[Spring Data R2DBC] repositories are
 Queries are created automatically from your method names.
 For example, a `CityRepository` interface might declare a `findAllByState(String state)` method to find all the cities in a given state.
 
-For more complex queries, you can annotate your method with Spring Data's {spring-data-r2dbc-api}/repository/query/Query.html[`Query`] annotation.
+For more complex queries, you can annotate your method with Spring Data's {spring-data-r2dbc-api}/repository/Query.html[`Query`] annotation.
 
 Spring Data repositories usually extend from the {spring-data-commons-api}/repository/Repository.html[`Repository`] or {spring-data-commons-api}/repository/CrudRepository.html[`CrudRepository`] interfaces.
 If you use auto-configuration, repositories are searched from the package containing your main configuration class (the one annotated with `@EnableAutoConfiguration` or `@SpringBootApplication`) down.
@@ -5884,7 +5890,8 @@ When a `jndi-name` is set, it takes precedence over all other Session-related se
 
 [[boot-features-jta]]
 == Distributed Transactions with JTA
-Spring Boot supports distributed JTA transactions across multiple XA resources by using either an https://www.atomikos.com/[Atomikos] or https://github.com/bitronix/btm[Bitronix] embedded transaction manager.
+Spring Boot supports distributed JTA transactions across multiple XA resources by using an https://www.atomikos.com/[Atomikos] embedded transaction manager.
+Deprecated support for using a https://github.com/bitronix/btm[Bitronix] embedded transaction manager is also provided but it will be removed in a future release.
 JTA transactions are also supported when deploying to a suitable Java EE Application Server.
 
 When a JTA environment is detected, Spring's `JtaTransactionManager` is used to manage transactions.
@@ -5913,7 +5920,8 @@ To ensure uniqueness in production, you should configure the configprop:spring.j
 
 [[boot-features-jta-bitronix]]
 === Using a Bitronix Transaction Manager
-https://github.com/bitronix/btm[Bitronix] is a popular open-source JTA transaction manager implementation.
+NOTE: As of Spring Boot 2.3, support for Bitronix has been deprecated and will be removed in a future release.
+
 You can use the `spring-boot-starter-jta-bitronix` starter to add the appropriate Bitronix dependencies to your project.
 As with Atomikos, Spring Boot automatically configures Bitronix and post-processes your beans to ensure that startup and shutdown ordering is correct.
 
@@ -5973,7 +5981,7 @@ The {spring-boot-module-code}/jms/XAConnectionFactoryWrapper.java[`XAConnectionF
 The interfaces are responsible for wrapping `XAConnectionFactory` and `XADataSource` beans and exposing them as regular `ConnectionFactory` and `DataSource` beans, which transparently enroll in the distributed transaction.
 DataSource and JMS auto-configuration use JTA variants, provided you have a `JtaTransactionManager` bean and appropriate XA wrapper beans registered within your `ApplicationContext`.
 
-The {spring-boot-module-code}/jta/bitronix/BitronixXAConnectionFactoryWrapper.java[BitronixXAConnectionFactoryWrapper] and {spring-boot-module-code}/jta/bitronix/BitronixXADataSourceWrapper.java[BitronixXADataSourceWrapper] provide good examples of how to write XA wrappers.
+The {spring-boot-module-code}/jta/atomikos/AtomikosXAConnectionFactoryWrapper.java[AtomikosXAConnectionFactoryWrapper] and {spring-boot-module-code}/jta/atomikos/AtomikosXADataSourceWrapper.java[AtomikosXADataSourceWrapper] provide good examples of how to write XA wrappers.
 
 
 
@@ -8150,7 +8158,7 @@ Assuming the above `Dockerfile` is in the current directory, your docker image c
 ----
 
 This is a multi-stage dockerfile.
-The builder stage extracts the folders that are needed later.
+The builder stage extracts the directories that are needed later.
 Each of the `COPY` commands relates to the layers extracted by the jarmode.
 
 Of course, a Dockerfile can be written without using the jarmode.

@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.buildpack.platform.toml;
+package org.springframework.boot.autoconfigure.kafka;
 
-import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 
 /**
- * Tests for {@link Toml}.
+ * Callback interface for customizing {@code DefaultKafkaConsumerFactory} beans.
  *
- * @author Phillip Webb
+ * @author Stephane Nicoll
+ * @since 2.3.0
  */
-class TomlTests {
+@FunctionalInterface
+public interface DefaultKafkaConsumerFactoryCustomizer {
 
-	@Test
-	void createsTomlMarkup() {
-		Toml toml = new Toml();
-		toml.table("run-image");
-		toml.string("image", "cnb/test");
-		toml.array("mirrors", "a", "b", "c");
-		String expected = "";
-		expected += "[run-image]\n";
-		expected += "image = \"cnb/test\"\n";
-		expected += "mirrors = [\"a\", \"b\", \"c\"]\n";
-		assertThat(toml.toString()).isEqualTo(expected);
-	}
+	/**
+	 * Customize the {@link DefaultKafkaConsumerFactory}.
+	 * @param consumerFactory the consumer factory to customize
+	 */
+	void customize(DefaultKafkaConsumerFactory<?, ?> consumerFactory);
 
 }

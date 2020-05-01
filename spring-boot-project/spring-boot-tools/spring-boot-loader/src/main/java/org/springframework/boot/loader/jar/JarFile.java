@@ -26,9 +26,13 @@ import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Supplier;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 
 import org.springframework.boot.loader.data.RandomAccessData;
@@ -84,6 +88,8 @@ public class JarFile extends java.util.jar.JarFile implements Iterable<java.util
 
 	private String comment;
 
+	private volatile boolean closed;
+
 	/**
 	 * Create a new {@link JarFile} backed by the specified file.
 	 * @param file the root jar file
@@ -109,6 +115,7 @@ public class JarFile extends java.util.jar.JarFile implements Iterable<java.util
 	 */
 	JarFile(JarFile parent) throws IOException {
 		super(parent.rootFile.getFile());
+		super.close();
 		this.parent = parent;
 		this.rootFile = parent.rootFile;
 		this.pathFromRoot = parent.pathFromRoot;
@@ -140,6 +147,7 @@ public class JarFile extends java.util.jar.JarFile implements Iterable<java.util
 	private JarFile(JarFile parent, RandomAccessDataFile rootFile, String pathFromRoot, RandomAccessData data,
 			JarEntryFilter filter, JarFileType type, Supplier<Manifest> manifestSupplier) throws IOException {
 		super(rootFile.getFile());
+		super.close();
 		this.parent = parent;
 		this.rootFile = rootFile;
 		this.pathFromRoot = pathFromRoot;
@@ -222,6 +230,13 @@ public class JarFile extends java.util.jar.JarFile implements Iterable<java.util
 		return new JarEntryEnumeration(this.entries.iterator());
 	}
 
+	@Override
+	public Stream<java.util.jar.JarEntry> stream() {
+		Spliterator<java.util.jar.JarEntry> spliterator = Spliterators.spliterator(iterator(), size(),
+				Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL);
+		return StreamSupport.stream(spliterator, false);
+	}
+
 	/**
 	 * Return an iterator for the contained entries.
 	 * @see java.lang.Iterable#iterator()
@@ -230,7 +245,7 @@ public class JarFile extends java.util.jar.JarFile implements Iterable<java.util
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterator<java.util.jar.JarEntry> iterator() {
-		return (Iterator) this.entries.iterator();
+		return (Iterator) this.entries.iterator(this::ensureOpen);
 	}
 
 	public JarEntry getJarEntry(CharSequence name) {
@@ -248,11 +263,13 @@ public class JarFile extends java.util.jar.JarFile implements Iterable<java.util
 
 	@Override
 	public ZipEntry getEntry(String name) {
+		ensureOpen();
 		return this.entries.getEntry(name);
 	}
 
 	@Override
 	public synchronized InputStream getInputStream(ZipEntry entry) throws IOException {
+		ensureOpen();
 		if (entry instanceof JarEntry) {
 			return this.entries.getInputStream((JarEntry) entry);
 		}
@@ -322,20 +339,35 @@ public class JarFile extends java.util.jar.JarFile implements Iterable<java.util
 
 	@Override
 	public String getComment() {
+		ensureOpen();
 		return this.comment;
 	}
 
 	@Override
 	public int size() {
+		ensureOpen();
 		return this.entries.getSize();
 	}
 
 	@Override
 	public void close() throws IOException {
-		super.close();
+		if (this.closed) {
+			return;
+		}
+		this.closed = true;
 		if (this.type == JarFileType.DIRECT && this.parent == null) {
 			this.rootFile.close();
 		}
+	}
+
+	private void ensureOpen() {
+		if (this.closed) {
+			throw new IllegalStateException("zip file closed");
+		}
+	}
+
+	boolean isClosed() {
+		return this.closed;
 	}
 
 	String getUrlString() throws MalformedURLException {

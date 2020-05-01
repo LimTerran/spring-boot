@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.devtools.restart.server;
+package org.springframework.boot.autoconfigure.session;
 
-import java.net.URL;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 
 /**
- * Filter URLs based on a source folder name. Used to match URLs from the running
- * classpath against source folders on a remote system.
+ * Callback interface that can be implemented by beans wishing to customize the
+ * {@link DefaultCookieSerializer} configuration.
  *
- * @author Phillip Webb
- * @since 1.3.0
- * @see DefaultSourceFolderUrlFilter
+ * @author Vedran Pavic
+ * @since 2.3.0
  */
 @FunctionalInterface
-public interface SourceFolderUrlFilter {
+public interface DefaultCookieSerializerCustomizer {
 
 	/**
-	 * Determine if the specified URL matches a source folder.
-	 * @param sourceFolder the source folder
-	 * @param url the URL to check
-	 * @return {@code true} if the URL matches
+	 * Customize the cookie serializer.
+	 * @param cookieSerializer the {@code DefaultCookieSerializer} to customize
 	 */
-	boolean isMatch(String sourceFolder, URL url);
+	void customize(DefaultCookieSerializer cookieSerializer);
 
 }

@@ -226,6 +226,11 @@ public class ServerProperties {
 		 */
 		private String applicationDisplayName = "application";
 
+		/**
+		 * Whether to register the default Servlet with the container.
+		 */
+		private boolean registerDefaultServlet = true;
+
 		@NestedConfigurationProperty
 		private final Encoding encoding = new Encoding();
 
@@ -257,6 +262,14 @@ public class ServerProperties {
 
 		public void setApplicationDisplayName(String displayName) {
 			this.applicationDisplayName = displayName;
+		}
+
+		public boolean isRegisterDefaultServlet() {
+			return this.registerDefaultServlet;
+		}
+
+		public void setRegisterDefaultServlet(boolean registerDefaultServlet) {
+			this.registerDefaultServlet = registerDefaultServlet;
 		}
 
 		public Map<String, String> getContextParameters() {
@@ -394,23 +407,23 @@ public class ServerProperties {
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.threads.max")
 		public int getMaxThreads() {
-			return this.getThreads().getMax();
+			return getThreads().getMax();
 		}
 
 		@Deprecated
 		public void setMaxThreads(int maxThreads) {
-			this.getThreads().setMax(maxThreads);
+			getThreads().setMax(maxThreads);
 		}
 
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.tomcat.threads.min-spare")
 		public int getMinSpareThreads() {
-			return this.getThreads().getMinSpare();
+			return getThreads().getMinSpare();
 		}
 
 		@Deprecated
 		public void setMinSpareThreads(int minSpareThreads) {
-			this.getThreads().setMinSpare(minSpareThreads);
+			getThreads().setMinSpare(minSpareThreads);
 		}
 
 		public DataSize getMaxHttpFormPostSize() {
@@ -1066,67 +1079,67 @@ public class ServerProperties {
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.jetty.threads.acceptors")
 		public Integer getAcceptors() {
-			return this.getThreads().getAcceptors();
+			return getThreads().getAcceptors();
 		}
 
 		@Deprecated
 		public void setAcceptors(Integer acceptors) {
-			this.getThreads().setAcceptors(acceptors);
+			getThreads().setAcceptors(acceptors);
 		}
 
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.jetty.threads.selectors")
 		public Integer getSelectors() {
-			return this.getThreads().getSelectors();
+			return getThreads().getSelectors();
 		}
 
 		@Deprecated
 		public void setSelectors(Integer selectors) {
-			this.getThreads().setSelectors(selectors);
+			getThreads().setSelectors(selectors);
 		}
 
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.jetty.threads.min")
 		public Integer getMinThreads() {
-			return this.getThreads().getMin();
+			return getThreads().getMin();
 		}
 
 		@Deprecated
 		public void setMinThreads(Integer minThreads) {
-			this.getThreads().setMin(minThreads);
+			getThreads().setMin(minThreads);
 		}
 
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.jetty.threads.max")
 		public Integer getMaxThreads() {
-			return this.getThreads().getMax();
+			return getThreads().getMax();
 		}
 
 		@Deprecated
 		public void setMaxThreads(Integer maxThreads) {
-			this.getThreads().setMax(maxThreads);
+			getThreads().setMax(maxThreads);
 		}
 
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.jetty.threads.max-queue-capacity")
 		public Integer getMaxQueueCapacity() {
-			return this.getThreads().getMaxQueueCapacity();
+			return getThreads().getMaxQueueCapacity();
 		}
 
 		@Deprecated
 		public void setMaxQueueCapacity(Integer maxQueueCapacity) {
-			this.getThreads().setMaxQueueCapacity(maxQueueCapacity);
+			getThreads().setMaxQueueCapacity(maxQueueCapacity);
 		}
 
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.jetty.threads.idle-timeout")
 		public Duration getThreadIdleTimeout() {
-			return this.getThreads().getIdleTimeout();
+			return getThreads().getIdleTimeout();
 		}
 
 		@Deprecated
 		public void setThreadIdleTimeout(Duration threadIdleTimeout) {
-			this.getThreads().setIdleTimeout(threadIdleTimeout);
+			getThreads().setIdleTimeout(threadIdleTimeout);
 		}
 
 		public Duration getConnectionIdleTimeout() {
@@ -1482,23 +1495,23 @@ public class ServerProperties {
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.undertow.threads.io")
 		public Integer getIoThreads() {
-			return this.getThreads().getIo();
+			return getThreads().getIo();
 		}
 
 		@Deprecated
 		public void setIoThreads(Integer ioThreads) {
-			this.getThreads().setIo(ioThreads);
+			getThreads().setIo(ioThreads);
 		}
 
 		@Deprecated
 		@DeprecatedConfigurationProperty(replacement = "server.undertow.threads.worker")
 		public Integer getWorkerThreads() {
-			return this.getThreads().getWorker();
+			return getThreads().getWorker();
 		}
 
 		@Deprecated
 		public void setWorkerThreads(Integer workerThreads) {
-			this.getThreads().setWorker(workerThreads);
+			getThreads().setWorker(workerThreads);
 		}
 
 		public Boolean getDirectBuffers() {
