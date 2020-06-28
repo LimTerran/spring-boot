@@ -2,23 +2,27 @@
 
 case "$JDK_VERSION" in
 	java8)
-		 BASE_URL="https://api.adoptopenjdk.net/v3/assets/feature_releases/8"
+		 BASE_URL="https://api.adoptopenjdk.net/v3/assets/feature_releases/8/ga"
 		 ISSUE_TITLE="Upgrade Java 8 version in CI image"
 	;;
 	java11)
-		 BASE_URL="https://api.adoptopenjdk.net/v3/assets/feature_releases/11"
+		 BASE_URL="https://api.adoptopenjdk.net/v3/assets/feature_releases/11/ga"
 		 ISSUE_TITLE="Upgrade Java 11 version in CI image"
 	;;
 	java14)
-		 BASE_URL="https://api.adoptopenjdk.net/v3/assets/feature_releases/14"
+		 BASE_URL="https://api.adoptopenjdk.net/v3/assets/feature_releases/14/ga"
 		 ISSUE_TITLE="Upgrade Java 14 version in CI image"
+	;;
+	java15)
+		 BASE_URL="https://api.adoptopenjdk.net/v3/assets/feature_releases/15/ea"
+		 ISSUE_TITLE="Upgrade Java 15 version in CI image"
 	;;
 	*)
 		echo $"Unknown java version"
 		exit 1;
 esac
 
-response=$( curl -s ${BASE_URL}\/ga\?architecture\=x64\&heap_size\=normal\&image_type\=jdk\&jvm_impl\=hotspot\&os\=linux\&sort_order\=DESC\&vendor\=adoptopenjdk )
+response=$( curl -s ${BASE_URL}\?architecture\=x64\&heap_size\=normal\&image_type\=jdk\&jvm_impl\=hotspot\&os\=linux\&sort_order\=DESC\&vendor\=adoptopenjdk )
 latest=$( jq -r '.[0].binaries[0].package.link' <<< "$response" )
 
 current=$( git-repo/ci/images/get-jdk-url.sh ${JDK_VERSION} )
@@ -37,7 +41,7 @@ if [[ ${existing_jdk_issues} = "" ]]; then
 	-s \
 	-u ${GITHUB_USERNAME}:${GITHUB_PASSWORD} \
 	-H "Content-type:application/json" \
-	-d "{\"title\":\"${ISSUE_TITLE}\",\"milestone\":\"${milestone_number}\",\"body\": \"${latest}\",\"labels\":[\"status: waiting-for-triage\",\"type: task\"]}"  \
+	-d "{\"title\":\"${ISSUE_TITLE}\",\"milestone\":\"${milestone_number}\",\"body\": \"${latest}\",\"labels\":[\"type: task\"]}"  \
 	-f \
 	-X \
 	POST "https://api.github.com/repos/${GITHUB_ORGANIZATION}/${GITHUB_REPO}/issues" > /dev/null || { echo "Failed to create issue" >&2; exit 1; }

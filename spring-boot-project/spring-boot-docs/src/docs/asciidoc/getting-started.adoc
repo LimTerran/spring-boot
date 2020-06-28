@@ -30,7 +30,7 @@ Our primary goals are:
 [[getting-started-system-requirements]]
 == System Requirements
 Spring Boot {spring-boot-version} requires https://www.java.com[Java 8] and is compatible up to Java 14 (included).
-{spring-framework-docs}[Spring Framework {spring-framework-version}] or above is also required.
+{spring-framework-docs}/[Spring Framework {spring-framework-version}] or above is also required.
 
 Explicit build support is provided for the following build tools:
 
@@ -136,7 +136,7 @@ More details on getting started with Spring Boot and Gradle can be found in the 
 [[getting-started-installing-the-cli]]
 === Installing the Spring Boot CLI
 The Spring Boot CLI (Command Line Interface) is a command line tool that you can use to quickly prototype with Spring.
-It lets you run http://groovy-lang.org/[Groovy] scripts, which means that you have a familiar Java-like syntax without so much boilerplate code.
+It lets you run https://groovy-lang.org/[Groovy] scripts, which means that you have a familiar Java-like syntax without so much boilerplate code.
 
 You do not need to use the CLI to work with Spring Boot, but it is definitely the quickest way to get a Spring application off the ground.
 
@@ -522,7 +522,7 @@ It tells Spring that any HTTP request with the `/` path should be mapped to the 
 The `@RestController` annotation tells Spring to render the resulting string directly back to the caller.
 
 TIP: The `@RestController` and `@RequestMapping` annotations are Spring MVC annotations (they are not specific to Spring Boot).
-See the {spring-framework-docs}web.html#mvc[MVC section] in the Spring Reference Documentation for more details.
+See the {spring-framework-docs}/web.html#mvc[MVC section] in the Spring Reference Documentation for more details.
 
 
 
